@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>
+        Example Clojure Twitter Application
+    </title>
+    <script src="javascript/modernizr-1.7.min.js"></script>
+    <link rel="stylesheet" href="stylesheets/twitter-example.css"/>
+</head>
+<body id="home">
+<section class="nojsWarning"><h1>Warning!</h1>
+
+    <p>You appear to have Javascript disabled - this site will not
+        work reliably</p></section>
+<section class="partCssWarning"><h1>Warning</h1>
+
+    <p>Some advanced CSS3/html5 features appear to not be supported by your browser.
+        This site is best viewed in a modern browser.</p></section>
+<!--[if lt IE 8]>
+<div class="oldIeWarning">
+    <h1>Warning!</h1>
+
+    <p>This site will not render correctly on Internet Explorer 7 or older</p>
+</div>
+<![endif]-->
+<section class="main">
+    <header>
+        <h1>Example Clojure Twitter Application</h1>
+    </header>
+    <section id="output">
+        <p>(loading...)</p>
+    </section>
+</section>
+
+<script type="text/html" class="view-template" data-name="noauth">
+    <p>Not authorized - please <a href="{{authUrl}}" class="auth">Authorize in Twitter</a></p>
+</script>
+
+<script type="text/html" class="view-template" data-name="tweets">
+    <p>Authorized in Twitter as {{name}}</p>
+    <ul>
+    {{#tweets}}
+      <li><a href="#">{{screen-name}}</a>&nbsp;{{tweet}}</li>
+    {{/tweets}}
+    {{^tweets}}
+      <li>loading tweets...</li>
+    {{/tweets}}
+    </ul>
+</script>
+<script type="text/html" class="view-template" data-name="error">
+    <p>Error: {{message}}</p>
+    <pre>{{data}}</pre>
+</script>
+<script type="text/html" class="view-template" data-name="dump">
+    <p>data dump:<pre>{{data}}</pre></p>
+</script>
+<script src="javascript/json2.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script src="javascript/underscore.js"></script>
+<script src="javascript/ba-debug.js"></script>
+<script src="javascript/handlebars-1.0.0.beta.2.js"></script>
+<script src="javascript/twitter-example.js"></script>
+</body>
+</html>

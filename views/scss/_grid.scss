@@ -1,0 +1,51 @@
+// simple grid, based on ideas at http://germanforblack.com/articles/handling-website-design-with-grids
+$width: 960px;
+// 12 columns with a 10px gutter on left + right (so 20px between cols)
+// each column 60px  (60+20)*12 = 960!
+$columns: 12;
+$colwidth: 60px;
+$gutter: 10px;
+$fullcolwidth: $colwidth + $gutter + $gutter;
+
+// Usage:
+// top-level elements just @include column(N) where n is the number of grids. Make sure they add to 12 for symmetry
+
+// child elements need to deal with being inside the margins of their parent, so need firstchild and lastchild.
+// for example:
+//  |   bigcol  |
+//  | a | b | c |
+// bigcol: { @include column(6); }  - a column 6 grids wide (50%)
+// a: { @include column(2); @include firstchild; }  - so a will be left-flush in bigcol.
+// b: { @include column(2); }
+// c: { @include column(2); @include lastchild; }  - same, flush right.
+
+// optionally add blank columns before with $before, after with $after parameters
+
+@mixin column($count, $before:0, $after: 0) {
+  display: block;
+  float: left;
+  margin-left: $gutter + ($fullcolwidth * $before);
+  margin-right: $gutter + ($fullcolwidth * $after);
+  width: (($fullcolwidth)*$count) - ($gutter * 2);
+}
+
+// padded column is useful if you want to set a background on the column
+//  same usage as above, but you can't add your own padding!
+//  also margins still used for before/after columns - if you want margins for some reason, be careful
+@mixin paddedcolumn($count, $before:0, $after: 0) {
+  display: block;
+  float: left;
+  margin-left: ($fullcolwidth * $before);
+  margin-right: ($fullcolwidth * $after);
+  padding-left: $gutter;
+  padding-right: $gutter;
+  width: (($fullcolwidth)*$count) - ($gutter * 2);
+}
+
+@mixin firstchild {
+  margin-left: 0;
+}
+
+@mixin lastchild {
+  margin-right: 0;
+}

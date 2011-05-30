@@ -1,0 +1,44 @@
+// reset (converted (just) from html5reset
+@import "html5reset-1.6.1";
+// warnings about browser compatibility etc
+@import "featuredetect";
+
+// basic css3 bells and whistles
+@import "css3_mixins";
+
+// basic css grid
+@import "grid";
+
+#home {
+  margin: 0px auto;
+  width: 960px;
+
+  font: 18px arial, helvetica, sans-serif;
+  line-height: 1.5;
+
+  padding: 10px 10px;
+  .main {
+    > header {
+      @include column(6,3,3);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    > section {
+      @include column(12);
+      padding: 8px;
+    }
+    #output {
+      > ul {
+        list-style: none;
+      > li {
+        @include rounded(8px);
+        background-color: #eee;
+        padding: 8px;
+        margin-bottom: 8px
+      }
+      }
+
+    }
+  }
+}
+

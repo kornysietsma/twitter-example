@@ -1,0 +1,30 @@
+@mixin warning {
+  display: block;
+  padding: 1em;
+  margin: 1em;
+  border: 1px solid red;
+  h1 {
+    font-size: 120%;
+    font-weight: bold;
+  }
+}
+
+.nojsWarning {
+  @include warning;
+}
+// turn off nojsWarning if we have javascript enabled
+.js .nojsWarning {
+  display: none;
+}
+
+.partCssWarning {
+  display:none;
+}
+// partCssWarning is disabled by default, but shows up if (for example) we have no border radius:
+.no-borderradius .partCssWarning {
+  @include warning;
+}
+
+.oldIeWarning {
+  @include warning;
+}

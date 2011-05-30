@@ -1,0 +1,38 @@
+@mixin clearfix {
+ display: block;
+ &:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+ }
+}
+
+@mixin rounded($amount) {
+  -moz-border-radius: $amount;
+  -webkit-border-radius: $amount;
+  border-radius: $amount;
+}
+
+@mixin roundside($topbot,$leftright,$amount) {
+  -moz-border-radius-#{$topbot}#{$leftright}: $amount;
+  -webkit-border-#{$topbot}-#{$leftright}-radius: $amount;
+  border-#{$topbot}-#{$leftright}-radius: $amount;
+}
+
+@mixin linear-gradient($from,$to) {
+  background: -webkit-gradient(linear, left top, left bottom, from(#{$from}), to(#{$to}));
+  background: -moz-linear-gradient(top,  #{$from},  #{$to});
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$from}', endColorstr='#{$to}');
+}
+@mixin box-shadow($colour,$xoff,$yoff,$blur) {
+   box-shadow: $colour $xoff $yoff $blur;
+   -moz-box-shadow: $colour $xoff $yoff $blur;
+   -webkit-box-shadow: $colour $xoff $yoff $blur;
+}
+@mixin rotate($degrees) {
+  transform: rotate($degrees);
+  -webkit-transform: rotate($degrees);
+  -moz-transform: rotate($degrees);
+}
