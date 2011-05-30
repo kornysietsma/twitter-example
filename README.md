@@ -58,16 +58,16 @@ The Twitter oauth dance is confusing if you haven't met it before.  Twitter have
 
 It might help however to describe all the steps in this app that happen before a Twitter API is called:
 
-1. At startup, the server ([core.clj](http:blob/master/src/twitter_example/core.clj)) reads configuration info from `resources/config/config.json`
+1. At startup, the server ([core.clj](twitter-example/blob/master/src/twitter_example/core.clj)) reads configuration info from `resources/config/config.json`
 1. The server then makes a call to Twitter to get a "request token", based on the application credentials and our local URLs. The request token is stored in a global symbol
     * ideally this would happen after app startup, and the request token would be stored in global state somewhere, with error handling if Twitter was not available!
 1. Then the application starts, and users can load the front page - from here on, most activity is driven from the client side
-1. When a user first loads the "/" page, the [index.html](blob/master/resources/public/index.html) page is loaded
+1. When a user first loads the "/" page, the [index.html](twitter-example/blob/master/resources/public/index.html) page is loaded
     * this includes view templates - they aren't visible to the user, but loaded by the javascript for rendering page snippets
-1. The code in [twitter-example.coffee](blob/master/views/coffee/twitter-example.coffee) is then loaded (as javascript) - this contains the client-side application logic
+1. The code in [twitter-example.coffee](twitter-example/blob/master/views/coffee/twitter-example.coffee) is then loaded (as javascript) - this contains the client-side application logic
 1. On page load, the TwitterExample constructor is called, which sets up view logic and calls `check_status()`
 1. `check_status()` makes an ajax call to "/auth/check_status.json" on the server
-    *. The server URLs are usually handled by the `defroutes` matchers half way down [core.clj](http:blob/master/src/twitter_example/core.clj) -
+    *. The server URLs are usually handled by the `defroutes` matchers half way down [core.clj](twitter-example/blob/master/src/twitter_example/core.clj) -
 but in this case, the user has not yet authorised, so the middleware function `with-oauth-check` kicks in
 1. `with-oauth-check` determines there is no auth information in the session, so it returns a HTTP 401 error, with a JSON body containing a message, and an authURL value with the URL required by Twitter to authorize the app
 1. The client catches the 401 error and calls `auth-error()` which renders a HTML view "noauth", showing the user the message "Please authorize in Twitter", and a link to the authURL returned from the server
