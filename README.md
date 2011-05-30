@@ -1,3 +1,7 @@
+## Warning - there's a bug in this version, it's re-using request tokens incorrectly.
+
+Sorry about that - it works fine for a single user, multiple users get errors!  I'll fix this in the morning, going to bed now - Korny
+
 # twitter-example
 
 This is a simple example program to show how to build a web application that access the Twitter API in Clojure.
