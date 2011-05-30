@@ -25,7 +25,6 @@
 (def consumer
   (let [credentials (:twitterCredentials config-data)
         {:keys [key secret]} credentials]
-    (println "in make-consumer - hopefully only called once!")
     (oauth/make-consumer key secret
       "https://api.twitter.com/oauth/request_token"
       "https://api.twitter.com/oauth/access_token"
@@ -34,14 +33,13 @@
 
 (def oauth-response-path "/twitter_oauth_response")
 
-(def oauth-response-callback (str "http://" (:host config-data) ":" (:port config-data) oauth-response-path ))
+(def oauth-response-callback (str "http://" (:host config-data) ":" (:port config-data) oauth-response-path))
 
 ; request token must be fetched from Twitter - currently at startup, good candidate for doing lazily
 (def request-token
   (do
-    (print "requesting request token from Twitter...")
-    (oauth/request-token consumer oauth-response-callback)
-    (println ("done."))))
+    (println "requesting request token from Twitter")
+    (oauth/request-token consumer oauth-response-callback)))
 
 ; callback url is built using the retrieved request token
 (def callback-uri
