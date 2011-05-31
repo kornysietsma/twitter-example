@@ -4,13 +4,13 @@
     ring.middleware.json-params
     ring.middleware.stacktrace
     ring.middleware.session
-    sandbar.stateful-session
-    [ring.util.response :only [redirect response content-type status]])
+    sandbar.stateful-session)
   (:require [compojure.route :as route]
     [compojure.handler :as handler]
     [clj-json.core :as json]
     [oauth.client :as oauth]
     [clojure.java.io :as io]
+    [ring.util.response :as response]
     twitter))
 
 (defn file-as-json [path]
@@ -55,8 +55,8 @@
 (defn json-response
   "return a JSON formatted Ring response"
   [data]
-  (-> (response (json/generate-string data))
-    (content-type "application/json")))
+  (-> (response/response (json/generate-string data))
+    (response/content-type "application/json")))
 
 (defn filtered-tweet
   "filter out just the parts of the tweet wanted by the UI"
@@ -69,7 +69,7 @@
     (let [request-token (session-get :request-token)
           resp (access-token-response request-token oauth_verifier)]
       (session-put! :twitter-oauth resp)
-      (redirect "/")))
+      (response/redirect "/")))
   (GET "/auth/tweets.json" {oauth :twitter-oauth}
     (twitter/with-oauth consumer (:oauth_token oauth) (:oauth_token_secret oauth)
       (json-response {"auth" true "name" (:screen_name oauth) "tweets" (map filtered-tweet (twitter/home-timeline))})))
@@ -105,7 +105,7 @@
               auth-url (callback-uri request-token)]
           (session-put! :request-token request-token)
           (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
-            (status 401))))
+            (response/status 401))))
       (handler request))))
 
 (def app
