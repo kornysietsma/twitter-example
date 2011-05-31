@@ -1,7 +1,3 @@
-## Warning - there's a bug in this version, it's re-using request tokens incorrectly.
-
-Sorry about that - it works fine for a single user, multiple users get errors!  I'll fix this in the morning, going to bed now - Korny
-
 # twitter-example
 
 This is a simple example program to show how to build a web application that access the Twitter API in Clojure.
@@ -63,8 +59,6 @@ The Twitter oauth dance is confusing if you haven't met it before.  Twitter have
 It might help however to describe all the steps in this app that happen before a Twitter API is called:
 
 1. At startup, the server ([core.clj](twitter-example/blob/master/src/twitter_example/core.clj)) reads configuration info from `resources/config/config.json`
-1. The server then makes a call to Twitter to get a "request token", based on the application credentials and our local URLs. The request token is stored in a global symbol
-    * ideally this would happen after app startup, and the request token would be stored in global state somewhere, with error handling if Twitter was not available!
 1. Then the application starts, and users can load the front page - from here on, most activity is driven from the client side
 1. When a user first loads the "/" page, the [index.html](twitter-example/blob/master/resources/public/index.html) page is loaded
     * this includes view templates - they aren't visible to the user, but loaded by the javascript for rendering page snippets
@@ -73,12 +67,15 @@ It might help however to describe all the steps in this app that happen before a
 1. `check_status()` makes an ajax call to "/auth/check_status.json" on the server
     *. The server URLs are usually handled by the `defroutes` matchers half way down [core.clj](twitter-example/blob/master/src/twitter_example/core.clj) -
 but in this case, the user has not yet authorised, so the middleware function `with-oauth-check` kicks in
-1. `with-oauth-check` determines there is no auth information in the session, so it returns a HTTP 401 error, with a JSON body containing a message, and an authURL value with the URL required by Twitter to authorize the app
+1. `with-oauth-check` determines there is no auth information in the session, so it starts the oauth interaction with twitter
+    1. It makes a call to Twitter to get a request token, based on the application credentials and our local URLs.  The request token is stored in the user's session
+    1. It also determines the appropriate URL on twitter to which the user should be redirected
+    1. It then returns a HTTP 401 error, with a JSON body containing a message, and an authURL value with the redirect URL
 1. The client catches the 401 error and calls `auth-error()` which renders a HTML view "noauth", showing the user the message "Please authorize in Twitter", and a link to the authURL returned from the server
 1. When the user clicks on the "authorize" link, they are taken to Twitter, where they can authorize - in which case they are redirected to the app, with the URL "/twitter-oauth-response" with url parameters containing extra data to confirm the user is authorized
 1. The server gets the "/twitter-oauth-response" request (it's actually stored in 'oauth-response-path', matching the line `(GET oauth-response-path [oauth_token oauth_verifier]` in core.clj
-1. It then makes another API call to Twitter to convert the request token and verifier into an access token
-1. The access token is finally stored in the session, so future calls to "/auth" URLs won't result in a 401 error
+1. It fetches the request token from the session, and makes another API call to Twitter to convert the request token and verifier into an access token
+1. The access token is stored in the session, so future calls to "/auth" URLs won't result in a 401 error.  (note the request token is no longer needed, and should probably be thrown away at this stage)
 1. The server then redirects the user back to "/", the starting page of the application
     * a more friendly application could try to store what the user originally requested, and after geting authorization, complete that request, but it's more than this little app can do
 1. The client reloads the page again, as before, which calls `check_status()` which calls "/auth/check_status.json"
