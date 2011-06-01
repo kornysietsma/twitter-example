@@ -1,5 +1,7 @@
 # twitter-example
 
+**This is a branch to try to get this deployable to Heroku - might not be stable yet**
+
 This is a simple example program to show how to build a web application that access the Twitter API in Clojure.
 
 It provides a single page web app, using Javascript (well, actually [coffeescript](http://jashkenas.github.com/coffee-script/)) to call JSON apis on the server -
