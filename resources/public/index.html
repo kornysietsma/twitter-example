@@ -33,6 +33,15 @@
     </section>
 </section>
 
+<script type="text/html" class="view-template" data-name="noinit">
+    <p>Not initialized! Please enter key and secret for a twitter application valid for this domain:</p>
+    <form id="initialize">
+        <p><label for="key">Key:</label><input id="key" type="text"/></p>
+        <p><label for="secret">Secret:</label><input id="secret" type="text"/></p>
+        <input type="submit" />
+    </form>
+</script>
+
 <script type="text/html" class="view-template" data-name="noauth">
     <p>Not authorized - please <a href="{{authUrl}}" class="auth">Authorize in Twitter</a></p>
 </script>
