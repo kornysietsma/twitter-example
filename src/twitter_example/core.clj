@@ -61,7 +61,8 @@
 (defn filtered-tweet
   "filter out just the parts of the tweet wanted by the UI"
   [tweet]
-  {:screen-name (get-in tweet [:user :screen_name]) :tweet (:text tweet)})
+  (let [{text :text {screen-name :screen_name} :user} tweet]
+    {:screen-name screen-name :tweet text}))
 
 (defroutes main-routes
   (GET "/" [] (resource "public/index.html"))
@@ -72,10 +73,11 @@
       (response/redirect "/")))
   (GET "/auth/tweets.json" {oauth :twitter-oauth}
     (twitter/with-oauth consumer (:oauth_token oauth) (:oauth_token_secret oauth)
-      (json-response {"auth" true "name" (:screen_name oauth) "tweets" (map filtered-tweet (twitter/home-timeline))})))
+      (json-response {:name (:screen_name oauth)
+                      :tweets (map filtered-tweet (twitter/home-timeline))})))
   (GET "/auth/status.json" {oauth :twitter-oauth}
     (json-response
-      {"name" (:screen_name oauth)}))
+      {:name (:screen_name oauth)}))
   (route/resources "/")
   (route/not-found "Page not found"))
 
@@ -86,17 +88,6 @@
    if not signed in, returns a 401 error, including the callback URL needed to sign in,
    so clients can prompt the user to start the OAuth dance!"
   [handler]
-; suggested routing - not working yet!
-;  (routes
-;    (ANY "/auth/*" request
-;      (if-let [oauth (session-get :twitter-oauth)]
-;        (handler (assoc request :twitter-oauth oauth))
-;        (let [request-token (twitter-request-token)
-;              auth-url (callback-uri request-token)]
-;          (session-put! :request-token request-token)
-;          (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
-;            (status 401)))))
-;    handler))
   (fn [request]
     (if (re-matches #"/auth/.*" (:uri request))
       (if-let [oauth (session-get :twitter-oauth)]
@@ -107,6 +98,27 @@
           (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
             (response/status 401))))
       (handler request))))
+
+(comment ; this implementation doesn't work at the moment - problems with symbols in nested routes.
+  (defn wrap-oauth-not-working
+    "middelware wrapper for twitter oauth credential check
+     only checks requests starting with '/auth'
+     if signed in, stores credentials in :twitter-oauth and continues
+     if not signed in, returns a 401 error, including the callback URL needed to sign in,
+     so clients can prompt the user to start the OAuth dance!"
+    [handler]
+    (routes
+      (ANY "/auth/*" request
+        (if-let [oauth (session-get :twitter-oauth)]
+          (do
+            (println "calling handler on req " request "  -> oauth" oauth)
+            (handler (assoc request :twitter-oauth oauth)))
+          (let [request-token (twitter-request-token)
+                auth-url (callback-uri request-token)]
+            (session-put! :request-token request-token)
+            (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
+              (response/status 401)))))
+      handler)))
 
 (def app
   (-> (handler/site main-routes)
