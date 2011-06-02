@@ -125,6 +125,25 @@ These only work on Unix/Mac systems - Windows users will have to work out a Wind
 ## To Do
 See separate TODO.markdown file
 
+## Notes on Heroku deployment
+Heroku deployment was a dream - the only hiccup I had (apart from a bunch of work to remove file-based configuration) was some extra dependencies.
+
+For some reason I had to add
+    [ring/ring-core "0.3.8"]
+    [ring/ring-jetty-adapter "0.3.8"]
+to the dependencies in project.clj - leiningen standalone seems to handle these automagically, but on heroku I had to be explicit.
+
+Other than that I followed the example at https://gist.github.com/1001206
+
+    gem install heroku
+    heroku keys:add
+    heroku create <my app name> --stack cedar
+    git push heroku master
+
+It's that simple! `heroku ps` lists running processes, `heroku logs` shows the log.  You can even run `heroku run lein repl` and get a REPL!
+
+The only caveat - it's unclear if this is free or if I'm being charged 5c an hour for the worker...
+
 ## License
 
 Copyright (c) 2011 Kornelis Sietsma
