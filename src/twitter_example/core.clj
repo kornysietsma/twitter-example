@@ -2,7 +2,6 @@
   (:use compojure.core
     [compojure.response :only [resource]]
     ring.middleware.json-params
-    ring.middleware.stacktrace
     ring.middleware.session
     sandbar.stateful-session
     [ring.adapter.jetty :only [run-jetty]])
