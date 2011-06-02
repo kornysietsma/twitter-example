@@ -8,13 +8,33 @@
       $.ajaxSetup({
         timeout: 10000
       });
+      this.setup_bindings();
       this.check_status();
     }
+    TwitterExample.prototype.setup_bindings = function() {
+      return $("#initialize").live("submit", __bind(function(event) {
+        return this.initialize(event);
+      }, this));
+    };
+    TwitterExample.prototype.initialize = function(event) {
+      var data, result;
+      event.preventDefault();
+      data = {
+        key: $("#key").val(),
+        secret: $("#secret").val()
+      };
+      result = $.post("/initialize.json", data, __bind(function() {
+        return this.check_status();
+      }, this));
+      return result.fail(__bind(function() {
+        return this.show_error("unexpected error", result);
+      }, this));
+    };
     TwitterExample.prototype.check_status = function() {
       var result;
       result = $.getJSON("/auth/status.json");
       result.done(__bind(function(data) {
-        this.renderView(this.outputElement, "tweets", {
+        this.render_view(this.outputElement, "tweets", {
           name: data.name
         });
         return this.fetch_tweets();
@@ -27,7 +47,7 @@
       var result;
       result = $.getJSON("/auth/tweets.json");
       result.done(__bind(function(data) {
-        return this.renderView(this.outputElement, "tweets", {
+        return this.render_view(this.outputElement, "tweets", {
           name: data.name,
           tweets: data.tweets
         });
@@ -40,21 +60,32 @@
       var payload;
       if (data.status === 401) {
         payload = JSON.parse(data.responseText);
-        if (!((payload != null) && payload.authUrl)) {
-          return this.renderView(this.outputElement, "error", {
-            message: "Unexpected error payload:",
-            data: JSON.stringify({
-              payload: payload,
-              response: data
-            }, null, 4)
+        if (!((payload != null) && (payload.initialized != null) && (payload.authorized != null))) {
+          return this.show_error("Unexpected error payload:", {
+            payload: payload,
+            response: data
           });
         } else {
-          return this.renderView(this.outputElement, "noauth", payload);
+          if (payload.initialized) {
+            return this.render_view(this.outputElement, "noauth", payload);
+          } else {
+            return this.render_view(this.outputElement, "noinit");
+          }
         }
       } else {
-        return this.renderView(this.outputElement, "error", {
-          message: "Unexpected error:",
+        return this.show_error("Unexpected error:", data);
+      }
+    };
+    TwitterExample.prototype.show_error = function(message, data) {
+      if (data != null) {
+        return this.render_view(this.outputElement, "error", {
+          message: message,
           data: JSON.stringify(data, null, 4)
+        });
+      } else {
+        return this.render_view(this.outputElement, "error", {
+          message: message,
+          data: nil
         });
       }
     };
@@ -68,7 +99,7 @@
         return that.views[name] = Handlebars.compile($(this).html());
       });
     };
-    TwitterExample.prototype.renderView = function(element, name, data) {
+    TwitterExample.prototype.render_view = function(element, name, data) {
       var view;
       if (!this.views[name]) {
         throw new Error("no such view: " + name);

@@ -4,7 +4,8 @@
     ring.middleware.json-params
     ring.middleware.stacktrace
     ring.middleware.session
-    sandbar.stateful-session)
+    sandbar.stateful-session
+    [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.route :as route]
     [compojure.handler :as handler]
     [clj-json.core :as json]
@@ -13,42 +14,47 @@
     [ring.util.response :as response]
     twitter))
 
-(defn file-as-json [path]
-  (first (json/parsed-seq (io/reader (io/resource path)) true)))
+; config is constructed once, via client posting to /initialize.json
+; - client detects the need for config from a failed (401) auth request with :initialized = false
+(def config (atom nil))
 
-(def config-data (file-as-json "config/config.json"))
-
-; consumer is constructed locally - build at start time
-(def consumer
-  (let [credentials (:twitterCredentials config-data)
-        {:keys [key secret]} credentials]
-    (oauth/make-consumer key secret
-      "https://api.twitter.com/oauth/request_token"
-      "https://api.twitter.com/oauth/access_token"
-      "https://api.twitter.com/oauth/authorize"
-      :hmac-sha1)))
+(defn consumer
+  "twitter consumer from global config"
+  {:pre [@config]}
+  [] (:consumer @config))
 
 (def oauth-response-path "/twitter_oauth_response")
 
-(def oauth-response-callback (str "http://" (:host config-data) ":" (:port config-data) oauth-response-path))
+(defn oauth-response-callback
+  "the url on our site that Twitter should redirect users back to"
+  {:pre [@config]}
+  []
+  (str "http://" (:host @config) ":" (:port @config) oauth-response-path))
+
+(defn make-consumer
+  "construct a Twitter consumer"
+  [key secret]
+  (oauth/make-consumer key secret
+    "https://api.twitter.com/oauth/request_token"
+    "https://api.twitter.com/oauth/access_token"
+    "https://api.twitter.com/oauth/authorize"
+    :hmac-sha1))
 
 (defn twitter-request-token
-  "fetch request token from twitter for a new user oauth dance"
+  "fetch request token from twitter to start the oauth authorization dance"
   []
-  (do
-    (println "requesting request token from Twitter")
-    (oauth/request-token consumer oauth-response-callback)))
+  (oauth/request-token (consumer) (oauth-response-callback)))
 
 (defn callback-uri
-  "generate callback uri for a given request"
+  "callback uri (on Twitter) to which we send a user to start authorization, once we have a request token"
   [request-token]
-  (oauth/user-approval-uri consumer
+  (oauth/user-approval-uri (consumer)
     (:oauth_token request-token)))
 
 (defn access-token-response
   "get access token from twitter once twitter has redirected back to the app"
   [request-token verifier]
-  (oauth/access-token consumer
+  (oauth/access-token (consumer)
     request-token
     verifier))
 
@@ -66,13 +72,20 @@
 
 (defroutes main-routes
   (GET "/" [] (resource "public/index.html"))
+  (POST "/initialize.json" [key secret :as request]
+    (if @config
+      (-> (json-response {:message "already initialized!"}) (response/status 500))
+      (let [{:keys [server-name server-port]} request
+            consumer (make-consumer key secret)]
+        (reset! config {:host server-name :port server-port :consumer consumer})
+        (json-response {:ok true}))))
   (GET oauth-response-path [oauth_token oauth_verifier]
     (let [request-token (session-get :request-token)
           resp (access-token-response request-token oauth_verifier)]
       (session-put! :twitter-oauth resp)
       (response/redirect "/")))
   (GET "/auth/tweets.json" {oauth :twitter-oauth}
-    (twitter/with-oauth consumer (:oauth_token oauth) (:oauth_token_secret oauth)
+    (twitter/with-oauth (consumer) (:oauth_token oauth) (:oauth_token_secret oauth)
       (json-response {:name (:screen_name oauth)
                       :tweets (map filtered-tweet (twitter/home-timeline))})))
   (GET "/auth/status.json" {oauth :twitter-oauth}
@@ -90,12 +103,19 @@
   [handler]
   (fn [request]
     (if (re-matches #"/auth/.*" (:uri request))
-      (if-let [oauth (session-get :twitter-oauth)]
-        (handler (assoc request :twitter-oauth oauth))
+      (cond
+        (nil? @config)
+        (->
+          (json-response {:initialized false, :authorized false})
+          (response/status 401))
+        (session-get :twitter-oauth)
+        (let [oauth (session-get :twitter-oauth)]
+          (handler (assoc request :twitter-oauth oauth)))
+        :else
         (let [request-token (twitter-request-token)
               auth-url (callback-uri request-token)]
           (session-put! :request-token request-token)
-          (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
+          (-> (json-response {:initialized true, :authorized false, :authUrl auth-url})
             (response/status 401))))
       (handler request))))
 
@@ -125,3 +145,7 @@
     (wrap-oauth)
     (wrap-stateful-session)
     (wrap-json-params)))
+
+(defn -main []
+  (let [port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
+    (run-jetty app {:port port})))
