@@ -8,6 +8,7 @@
                  [clj-json "0.3.2"]
                  [ring-json-params "0.1.3"]
                  [sandbar "0.4.0-SNAPSHOT"]
-                 ]
+                 [ring/ring-core "0.3.8"]
+                 [ring/ring-jetty-adapter "0.3.8"]]
   :dev-dependencies [[lein-ring "0.4.0"]]
   :ring {:handler twitter-example.core/app})
