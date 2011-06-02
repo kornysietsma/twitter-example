@@ -4,7 +4,8 @@
     ring.middleware.json-params
     ring.middleware.stacktrace
     ring.middleware.session
-    sandbar.stateful-session)
+    sandbar.stateful-session
+    [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.route :as route]
     [compojure.handler :as handler]
     [clj-json.core :as json]
@@ -13,7 +14,7 @@
     [ring.util.response :as response]
     twitter))
 
-; config is constructed once, via client posting to /set-config.json
+; config is constructed once, via client posting to /initialize.json
 ; - client detects the need for config from a failed (401) auth request with :initialized = false
 (def config (atom nil))
 
@@ -72,7 +73,6 @@
 (defroutes main-routes
   (GET "/" [] (resource "public/index.html"))
   (POST "/initialize.json" [key secret :as request]
-    (println "init:" key secret request)
     (if @config
       (-> (json-response {:message "already initialized!"}) (response/status 500))
       (let [{:keys [server-name server-port]} request
@@ -104,26 +104,19 @@
   (fn [request]
     (if (re-matches #"/auth/.*" (:uri request))
       (cond
-        (nil? @config) (->
-        (json-response {:initialized false, :authorized false})
-        (response/status 401))
-        (session-get :twitter-oauth) (
-        let [oauth (session-get :twitter-oauth)]
-        (handler (assoc request :twitter-oauth oauth)))
+        (nil? @config)
+        (->
+          (json-response {:initialized false, :authorized false})
+          (response/status 401))
+        (session-get :twitter-oauth)
+        (let [oauth (session-get :twitter-oauth)]
+          (handler (assoc request :twitter-oauth oauth)))
         :else
         (let [request-token (twitter-request-token)
               auth-url (callback-uri request-token)]
           (session-put! :request-token request-token)
           (-> (json-response {:initialized true, :authorized false, :authUrl auth-url})
             (response/status 401))))
-
-      ;      (if-let [oauth (session-get :twitter-oauth)]
-      ;        (handler (assoc request :twitter-oauth oauth))
-      ;        (let [request-token (twitter-request-token)
-      ;              auth-url (callback-uri request-token)]
-      ;          (session-put! :request-token request-token)
-      ;          (-> (json-response {:initialized => true, :authorized => false, :authUrl auth-url})
-      ;            (response/status 401))))
       (handler request))))
 
 (comment ; this implementation doesn't work at the moment - problems with symbols in nested routes.
@@ -152,3 +145,7 @@
     (wrap-oauth)
     (wrap-stateful-session)
     (wrap-json-params)))
+
+(defn -main []
+  (let [port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
+    (run-jetty app {:port port})))

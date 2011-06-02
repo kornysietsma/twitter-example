@@ -48,15 +48,17 @@ This app needs a valid Twitter application to run.  This is pretty easy to confi
 * Note the "key" and "secret" values on the twitter app page
 
 Now, when you run the app, it will display a form for entering the key and secret - enter the values above, and from there on it should be authenticated.
+**NOTE** if you get this wrong, there is currently no error handling to speak of - you'll need to stop and restart the app to change credentials!
 
 If you are running the app a lot, you might want to post the key/secret via the command line - you can do this with curl:
     curl -i -X POST -d '{"key" : "xxxxxxx", "secret" : "yyyyyyy" }' http://127.0.0.1:3000/initialize.json
 
-*Note* it's important to specify `127.0.0.1` not `localhost` - Twitter don't let you set up an app on localhost, and the twitter example gets the host name from the request
+*Note* it's important to specify `127.0.0.1` not `localhost` - Twitter don't let you set up an app on localhost, and the application gets the host name from the request
 
 ### Run the app
 
 * run "lein ring server" - this will build the app, deploy it to a local server on (probably) port 3000, and then display the home page in a browser.  It will initially prompt you for twitter credentials - see above for details
+* alternateively, run "lein run -m twitter-example.core" which will run in a local jetty server on port 8080, a somewhat more production-like environment
 
 ## How it works
 
