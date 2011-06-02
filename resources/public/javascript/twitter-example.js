@@ -23,9 +23,9 @@
         key: $("#key").val(),
         secret: $("#secret").val()
       };
-      result = $.post("/initialize.json", data, function() {
-        return window.location.reload();
-      });
+      result = $.post("/initialize.json", data, __bind(function() {
+        return this.check_status();
+      }, this));
       return result.fail(__bind(function() {
         return this.show_error("unexpected error", result);
       }, this));

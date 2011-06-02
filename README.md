@@ -37,22 +37,26 @@ Currently this can't be run standalone - it can only be run via leiningen.
 
 ### Set up Twitter configuration
 
-This app needs a valid Twitter application to run.  This is pretty easy to build yourself:
+This app needs a valid Twitter application to run.  This is pretty easy to configure yourself:
 
 * go to https://dev.twitter.com/apps
 * click "register a new app"
 * enter any details you want
 * make sure the application website, and the callback url, match the domain you plan to use.
     * for development, this should be "127.0.0.1" - you can't use "localhost" for some reason, Twitter block it
-    * so for example, your callback url and application website should be "http://127.0.0.1/" unless you plan to host on a real host name.
-* copy the file (in this project) "resources/config/config_sample.json" to "resources/config/config.json", and update:
-    * the host (if not on localhost)
-    * the port (if not using leiningen to host - this should really come from the app, I plan to fix this soon)
-    * twitter credentials, which you can copy from the Twitter application you just created
+    * so for example, your callback url and application website should be "http://127.0.0.1/" unless you plan to host on a real host name.  The port doesn't matter, as far as I can tell.
+* Note the "key" and "secret" values on the twitter app page
+
+Now, when you run the app, it will display a form for entering the key and secret - enter the values above, and from there on it should be authenticated.
+
+If you are running the app a lot, you might want to post the key/secret via the command line - you can do this with curl:
+    curl -i -X POST -d '{"key" : "xxxxxxx", "secret" : "yyyyyyy" }' http://127.0.0.1:3000/initialize.json
+
+*Note* it's important to specify `127.0.0.1` not `localhost` - Twitter don't let you set up an app on localhost, and the twitter example gets the host name from the request
 
 ### Run the app
 
-* run "lein ring server" - this will build the app, deploy it to a local server on (probably) port 3000, and then display the home page in a browser
+* run "lein ring server" - this will build the app, deploy it to a local server on (probably) port 3000, and then display the home page in a browser.  It will initially prompt you for twitter credentials - see above for details
 
 ## How it works
 
@@ -60,15 +64,21 @@ The Twitter oauth dance is confusing if you haven't met it before.  Twitter have
 
 It might help however to describe all the steps in this app that happen before a Twitter API is called:
 
-1. At startup, the server ([core.clj](twitter-example/blob/master/src/twitter_example/core.clj)) reads configuration info from `resources/config/config.json`
-1. Then the application starts, and users can load the front page - from here on, most activity is driven from the client side
+1. At startup, the server ([core.clj](twitter-example/blob/master/src/twitter_example/core.clj)) is unconfigured - for deploying to hosts like heroku, it's easier to configure via the UI.
+    * configuration is stored in an atom called 'config' - it could also be stored in a database, but an atom is a simple way to share global state in this case
 1. When a user first loads the "/" page, the [index.html](twitter-example/blob/master/resources/public/index.html) page is loaded
     * this includes view templates - they aren't visible to the user, but loaded by the javascript for rendering page snippets
 1. The code in [twitter-example.coffee](twitter-example/blob/master/views/coffee/twitter-example.coffee) is then loaded (as javascript) - this contains the client-side application logic
 1. On page load, the TwitterExample constructor is called, which sets up view logic and calls `check_status()`
 1. `check_status()` makes an ajax call to "/auth/check_status.json" on the server
-    *. The server URLs are usually handled by the `defroutes` matchers half way down [core.clj](twitter-example/blob/master/src/twitter_example/core.clj) -
-but in this case, the user has not yet authorised, so the middleware function `with-oauth-check` kicks in
+    * The server URLs are usually handled by the `defroutes` matchers half way down [core.clj](twitter-example/blob/master/src/twitter_example/core.clj) -
+but in this case, the application has not been initialised, so the middleware function `with-oauth-check` kicks in
+1. `with-oauth-check` determines there is no config information in the 'config' atom, so it returns a HTTP 401 error, with a JSON body indicating the need to initialise
+1. The client catches the 401 error and calls `auth-error()` which renders a HTML view "noinit", showing the user the form to initialise Twitter credentials
+1. When the user clicks "submit", the form is posted (as JSON data) to "/initialise.json", which stores the needed config data in the 'config' atom, and returns an "OK" response
+    * note the error handling here is terrible - definitely room for improvment, but as this only happens once I'm not making it high priority
+1. When the client gets the successful response, it calls `check_status()` again, to progress to the next stage of authorisation.
+1. `check_status()` makes an ajax call to "/auth/check_status.json" on the server again, which goes to `with-oauth-check` again
 1. `with-oauth-check` determines there is no auth information in the session, so it starts the oauth interaction with twitter
     1. It makes a call to Twitter to get a request token, based on the application credentials and our local URLs.  The request token is stored in the user's session
     1. It also determines the appropriate URL on twitter to which the user should be redirected
@@ -90,6 +100,7 @@ but in this case, the user has not yet authorised, so the middleware function `w
 1. The client renders the resulting twitter messages.
 
 Phew!  This may look complex, but it's a pretty common workflow for applications trying to do OAuth.  It's actually somewhat simpler in clojure/coffeescript than other languages I've done this in!
+The only extra complexity here is needing to set up Twitter credentials through the UI - usually you'd get these from a config file (in fact the first revision of this example did just that - see the 'pre-heroku' tag)
 
 ## Other stuff
 

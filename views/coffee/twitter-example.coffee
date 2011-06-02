@@ -12,7 +12,7 @@ class TwitterExample
   initialize: (event) ->
     event.preventDefault()
     data = { key: $("#key").val(), secret: $("#secret").val() }
-    result = $.post "/initialize.json", data, -> window.location.reload()
+    result = $.post "/initialize.json", data, => @check_status()
     result.fail => @show_error("unexpected error", result)
 
   check_status: ->

@@ -72,6 +72,7 @@
 (defroutes main-routes
   (GET "/" [] (resource "public/index.html"))
   (POST "/initialize.json" [key secret :as request]
+    (println "init:" key secret request)
     (if @config
       (-> (json-response {:message "already initialized!"}) (response/status 500))
       (let [{:keys [server-name server-port]} request

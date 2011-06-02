@@ -27,6 +27,7 @@
 <section class="main">
     <header>
         <h1>Example Clojure Twitter Application</h1>
+        <aside>See the code on <a href="https://github.com/kornysietsma/twitter-example#readme">github</a></aside>
     </header>
     <section id="output">
         <p>(loading...)</p>
@@ -50,7 +51,7 @@
     <p>Authorized in Twitter as {{name}}</p>
     <ul>
     {{#tweets}}
-      <li><a href="#">{{screen-name}}</a>&nbsp;{{tweet}}</li>
+      <li><a href="http://twitter.com/#!/{{screen-name}}">{{screen-name}}</a>&nbsp;{{tweet}}</li>
     {{/tweets}}
     {{^tweets}}
       <li>loading tweets...</li>
