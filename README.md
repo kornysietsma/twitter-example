@@ -142,7 +142,7 @@ Other than that I followed the example at https://gist.github.com/1001206
 
 It's that simple! `heroku ps` lists running processes, `heroku logs` shows the log.  You can even run `heroku run lein repl` and get a REPL!
 
-The only caveat - it's unclear if this is free or if I'm being charged 5c an hour for the worker...
+Note I've confirmed with Heroku, despite some slight lack of clarity on their site, this is free for the basic level of service (750 dynamo-hours per month).
 
 ## License
 
