@@ -9,12 +9,6 @@ class TwitterExample
   setup_bindings: ->
     $("#initialize").live("submit", (event) => @initialize(event))
 
-  initialize: (event) ->
-    event.preventDefault()
-    data = { key: $("#key").val(), secret: $("#secret").val() }
-    result = $.post "/initialize.json", data, => @check_status()
-    result.fail => @show_error("unexpected error", result)
-
   check_status: ->
     result = $.getJSON "/auth/status.json"
     result.done (data) =>
@@ -33,13 +27,10 @@ class TwitterExample
   auth_error: (data) ->
     if data.status == 401
       payload = JSON.parse(data.responseText)
-      unless payload? and payload.initialized? and payload.authorized?  # note checking existence of flags, not value!
+      unless payload? and payload.authUrl?
         @show_error("Unexpected error payload:",{payload: payload, response: data})
       else
-        if payload.initialized
-          @render_view(@outputElement,"noauth", payload)
-        else
-          @render_view(@outputElement,"noinit")
+        @render_view(@outputElement,"noauth", payload)
     else
       @show_error("Unexpected error:", data)
 

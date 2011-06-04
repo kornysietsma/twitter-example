@@ -34,20 +34,6 @@
     </section>
 </section>
 
-<script type="text/html" class="view-template" data-name="noinit">
-    <p>Hi folks - if you can see this message, it means that the Heroku application has been restarted
-    after being idle for too long.  Sadly, as this application stores state in memory,
-    the application can't be used after re-starting unless I re-enter Twitter credentials.</p>
-    <p>If you <b>really</b> want to see it in action, contact me (<a href="http://korny.info">Korny</a>) and ask me to re-enter the credentials. Though there's not a lot to see, the <a href="https://github.com/kornysietsma/twitter-example">code</a> is more interesting than the app.</p>
-    <hr/>
-    <p>Not initialized! Please enter key and secret for a twitter application valid for this domain:</p>
-    <form id="initialize">
-        <p><label for="key">Key:</label><input id="key" type="text"/></p>
-        <p><label for="secret">Secret:</label><input id="secret" type="text"/></p>
-        <input type="submit" />
-    </form>
-</script>
-
 <script type="text/html" class="view-template" data-name="noauth">
     <p>Not authorized - please <a href="{{authUrl}}" class="auth">Authorize in Twitter</a></p>
 </script>

@@ -16,20 +16,6 @@
         return this.initialize(event);
       }, this));
     };
-    TwitterExample.prototype.initialize = function(event) {
-      var data, result;
-      event.preventDefault();
-      data = {
-        key: $("#key").val(),
-        secret: $("#secret").val()
-      };
-      result = $.post("/initialize.json", data, __bind(function() {
-        return this.check_status();
-      }, this));
-      return result.fail(__bind(function() {
-        return this.show_error("unexpected error", result);
-      }, this));
-    };
     TwitterExample.prototype.check_status = function() {
       var result;
       result = $.getJSON("/auth/status.json");
@@ -60,17 +46,13 @@
       var payload;
       if (data.status === 401) {
         payload = JSON.parse(data.responseText);
-        if (!((payload != null) && (payload.initialized != null) && (payload.authorized != null))) {
+        if (!((payload != null) && (payload.authUrl != null))) {
           return this.show_error("Unexpected error payload:", {
             payload: payload,
             response: data
           });
         } else {
-          if (payload.initialized) {
-            return this.render_view(this.outputElement, "noauth", payload);
-          } else {
-            return this.render_view(this.outputElement, "noinit");
-          }
+          return this.render_view(this.outputElement, "noauth", payload);
         }
       } else {
         return this.show_error("Unexpected error:", data);
