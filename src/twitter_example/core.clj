@@ -32,7 +32,6 @@
         host (get env "CALLBACK_HOST")
         port (get env "CALLBACK_PORT")
         callback (str "http://" host ":" port oauth-response-path)]
-    (println key secret host port)
     (throw-if-not (and key secret host port) "Not all required environment variables set")
     {:consumer (make-consumer key secret)
      :callback callback}))
