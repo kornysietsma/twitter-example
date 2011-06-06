@@ -123,13 +123,11 @@
     (routes
       (ANY "/auth/*" request
         (if-let [oauth (session-get :twitter-oauth)]
-          (do
-            (println "calling handler on req " request "  -> oauth" oauth)
-            (handler (assoc request :twitter-oauth oauth)))
+          (handler (assoc request :twitter-oauth oauth))
           (let [request-token (twitter-request-token)
                 auth-url (callback-uri request-token)]
             (session-put! :request-token request-token)
-            (-> (json-response {:message "twitter not authorized" :authUrl auth-url})
+            (-> (json-response {:authUrl auth-url})
               (response/status 401)))))
       handler)))
 

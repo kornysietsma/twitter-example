@@ -107,11 +107,15 @@ Phew!  This may look complex, but it's a pretty common workflow for applications
 
 ## Testing
 
-Testing is very rudimentary at the moment.
+Testing is somewhat rudimentary - there are a few tests included, but they only test a few simple things.
 
 Testing uses the wonderful [midje](https://github.com/marick/Midje#readme) library.  To run tests, run
 
     lein midje
+
+Note that midje provides quite powerful mocking, using the 'provided' command - none of these tests need to actually call Twitter, the twitter API is mocked out.
+
+I'm still a bit unsure how far to TDD clojure - it's obviously possible, but there's a lot of functionality that probably doesn't gain much from (unit) tests.  Unless I define the whole namespace as a unit, and only mock external interfaces.  Hmm...
 
 
 ## Other stuff
