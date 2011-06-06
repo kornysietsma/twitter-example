@@ -10,5 +10,6 @@
                  [sandbar "0.4.0-SNAPSHOT"]
                  [ring/ring-core "0.3.8"]
                  [ring/ring-jetty-adapter "0.3.8"]]
-  :dev-dependencies [[lein-ring "0.4.0"]]
+  :dev-dependencies [[lein-ring "0.4.0"]
+                     [midje "1.1.1"]]
   :ring {:handler twitter-example.core/app})

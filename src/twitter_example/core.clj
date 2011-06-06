@@ -5,7 +5,8 @@
     ring.middleware.session
     sandbar.stateful-session
     [ring.adapter.jetty :only [run-jetty]]
-    clojure.contrib.except)
+    clojure.contrib.except
+    [clojure.contrib.def :only [defn-memo]])
   (:require [compojure.route :as route]
     [compojure.handler :as handler]
     [clj-json.core :as json]
@@ -25,7 +26,9 @@
 
 (def oauth-response-path "/twitter_oauth_response")
 
-(def config
+(defn-memo config
+  "configuration constructed from environment variables - memoized!"
+  []
   (let [env (System/getenv)
         key (get env "TWITTER_KEY")
         secret (get env "TWITTER_SECRET")
@@ -38,11 +41,11 @@
 
 (defn consumer
   "twitter consumer from global config"
-  [] (:consumer config))
+  [] (:consumer (config)))
 
 (defn oauth-response-callback
   "the url on our site that Twitter should redirect users back to"
-  [] (:callback config))
+  [] (:callback (config)))
 
 (defn twitter-request-token
   "fetch request token from twitter to start the oauth authorization dance"
@@ -138,4 +141,5 @@
 
 (defn -main []
   (let [port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
+    (config)  ; force memoization of config variables - fail early!
     (run-jetty app {:port port})))

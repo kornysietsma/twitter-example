@@ -5,7 +5,9 @@ This is a simple example program to show how to build a web application that acc
 It provides a single page web app, using Javascript (well, actually [coffeescript](http://jashkenas.github.com/coffee-script/)) to call JSON apis on the server -
 this keeps the server quite simple, a great fit for clojure.
 
-It uses the following libraries and programs:
+*Note* that I'm a relative clojure newbie - I'm learning as I go, but don't assume this is the best idiomatic clojure code!
+
+The application uses the following libraries and programs:
 
 * Clojure bits:
     * [Compojure](https://github.com/weavejester/compojure) - a great simple Clojure web framework
@@ -14,6 +16,7 @@ It uses the following libraries and programs:
     * [lein-ring](https://github.com/weavejester/lein-ring) - to load the app dynamically in development mode
     * [clojure-twitter](https://github.com/mattrepl/clojure-twitter) - for twitter API stuff
     * [clj-oauth](https://github.com/mattrepl/clj-oauth) - for the underlying authentication used by twitter
+    * [midje](https://github.com/marick/Midje#readme) - for testing
     * a few others as needed - for other clojure libraries, look in the main 'project.clj' file
 * Front end bits:
     * [Sass](http://sass-lang.com/) for nicer CSS syntax
@@ -26,6 +29,7 @@ Some of this is based on code and ideas from my [loosely coupled web app skeleto
 
 ## Changelog
 
+* 6 Jun 2011 - added initial midje tests - also load config from a (memoized) function so tests don't need to have config set up
 * 4 Jun 2011 - considerably simplified startup - as Heroku may restart the app on demand, there's little
 value in using atoms to store config. Instead, config now stored in environment variables - needs
 more setup, but probably a simpler example anyway.
@@ -100,6 +104,15 @@ but in this case, the user has not yet authorized, so the middleware function `w
 1. The client renders the resulting twitter messages.
 
 Phew!  This may look complex, but it's a pretty common workflow for applications trying to do OAuth.  It's actually somewhat simpler in clojure/coffeescript than other languages I've done this in!
+
+## Testing
+
+Testing is very rudimentary at the moment.
+
+Testing uses the wonderful [midje](https://github.com/marick/Midje#readme) library.  To run tests, run
+
+    lein midje
+
 
 ## Other stuff
 
