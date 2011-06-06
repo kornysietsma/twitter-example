@@ -74,8 +74,8 @@
 (defn filtered-tweet
   "filter out just the parts of the tweet wanted by the UI"
   [tweet]
-  (let [{text :text {screen-name :screen_name} :user} tweet]
-    {:screen-name screen-name :tweet text}))
+  (let [{text :text {screen_name :screen_name} :user} tweet]
+    {:screen_name screen_name :tweet text}))
 
 (defroutes main-routes
   (GET "/" [] (resource "public/index.html"))
